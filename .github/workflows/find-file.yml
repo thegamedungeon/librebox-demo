@@ -1,20 +1,29 @@
-name: Scout
+name: Path Tracer
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  find-it:
+  trace-path:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # This gives the bot permission to create path.txt
     steps:
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Search and Report
+      - name: Find and Record
         run: |
-          echo "HUNTING FOR THE GOODS..."
-          # This find command will print the exact path starting from ./
-          # If it finds nothing, it stays silent.
-          find . -name "librebox.js" -print
-          find . -name "librebox.wasm" -print
-          echo "SEARCH COMPLETE."
+          # Search for the files and append their paths to path.txt
+          # We use 'sed' to clean up the './' from the start
+          find . -name "librebox.js" | sed 's|^\./||' >> path.txt
+          find . -name "librebox.wasm" | sed 's|^\./||' >> path.txt
+
+      - name: Commit Path File
+        run: |
+          git config --global user.name "Ramcycle-Bot"
+          git config --global user.email "bot@ramcycle.com"
+          git add path.txt
+          # The '|| true' stops it from crashing if the path hasn't changed
+          git commit -m "Update path.txt with found locations" || true
+          git push
