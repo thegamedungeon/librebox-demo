@@ -1,29 +1,49 @@
-name: Path Tracer
+name: Path Snitcher
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  trace-path:
+  snitch-task:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # This gives the bot permission to create path.txt
+      contents: write
     steps:
-      - name: Checkout
+      - name: Checkout The Crib
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Find and Record
+      - name: Hunter-Seeker Protocol
         run: |
-          # Search for the files and append their paths to path.txt
-          # We use 'sed' to clean up the './' from the start
-          find . -name "librebox.js" | sed 's|^\./||' >> path.txt
-          find . -name "librebox.wasm" | sed 's|^\./||' >> path.txt
+          echo "RAMCYCLE ENGINE: SCANNING FOR CORE FILES..."
+          
+          # We clear the file first so Daimyan can't fill it with junk
+          echo "--- RAMCYCLE SEARCH LOG ---" > path.txt
+          
+          # Find the JS file and append it
+          JS_FIND=$(find . -name "librebox.js" | sed 's|^\./||')
+          if [ -z "$JS_FIND" ]; then
+            echo "librebox.js: NOT FOUND" >> path.txt
+          else
+            echo "JS_PATH: $JS_FIND" >> path.txt
+          fi
+          
+          # Find the WASM file and append it
+          WASM_FIND=$(find . -name "librebox.wasm" | sed 's|^\./||')
+          if [ -z "$WASM_FIND" ]; then
+            echo "librebox.wasm: NOT FOUND" >> path.txt
+          else
+            echo "WASM_PATH: $WASM_FIND" >> path.txt
+          fi
+          
+          echo "SCAN COMPLETE. REPORTING TO THE CRIB."
 
-      - name: Commit Path File
+      - name: Deploy Intel to Repo
         run: |
           git config --global user.name "Ramcycle-Bot"
           git config --global user.email "bot@ramcycle.com"
           git add path.txt
-          # The '|| true' stops it from crashing if the path hasn't changed
-          git commit -m "Update path.txt with found locations" || true
+          # The '|| exit 0' makes sure we don't get an Exit Code 1 if nothing changed
+          git commit -m "Scout reported new coordinates for Ramcycle" || exit 0
           git push
