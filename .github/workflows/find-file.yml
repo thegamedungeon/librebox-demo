@@ -1,0 +1,34 @@
+name: Ramcycle Scout
+on: [push, workflow_dispatch] # workflow_dispatch lets you run it manually from your iPad
+
+jobs:
+  search-task:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Dungeon
+        uses: actions/checkout@v4
+
+      - name: Hunt for the Target
+        id: hunt
+        run: |
+          # Replace 'librebox.js' with whatever file name you are looking for
+          TARGET="librebox.js"
+          
+          echo "Scanning all folders for $TARGET..."
+          
+          # Find the file, grab the first result, and clean the path
+          FOUND_PATH=$(find . -name "$TARGET" -print -quit | sed 's|./||')
+
+          if [ -z "$FOUND_PATH" ]; then
+            echo "----------------------------------------"
+            echo "RESULT: File Not Found"
+            echo "----------------------------------------"
+            # This stops the script here so you know it failed
+            exit 1
+          else
+            echo "----------------------------------------"
+            echo "SUCCESS: Found it!"
+            echo "PATH: $FOUND_PATH"
+            echo "----------------------------------------"
+            # This saves the path so you can see it in the GitHub 'Actions' tab
+            echo "final_path=$FOUND_PATH" >> $GITHUB_OUTPUT
